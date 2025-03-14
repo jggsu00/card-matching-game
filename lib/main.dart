@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'dart:async';
 
 
 void main() {
@@ -84,3 +85,80 @@ class GameState extends ChangeNotifier {
     _initializeGame();
   }
 }
+
+class CardMatchingGame extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black, // Set background to black
+      appBar: AppBar(
+        title: Text('Card Matching Game', style: TextStyle(color: Colors.blue)),
+        backgroundColor: Colors.black,
+      ),
+      body: Consumer<GameState>(
+        builder: (context, gameState, child) {
+          return Column(
+            children: [
+              Expanded(
+                child: GridView.builder(
+                  padding: EdgeInsets.all(20),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                  ),
+                  itemCount: gameState.cards.length,
+                  itemBuilder: (context, index) {
+                    return CardWidget(
+                      card: gameState.cards[index],
+                      onTap: () => gameState.flipCard(gameState.cards[index]),
+                    );
+                  },
+                ),
+              ),
+              if (gameState.hasWon())
+                Padding(
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      Text(
+                        'You Win!',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue, // Set "You Win!" text to blue
+                        ),
+                      ),
+                      SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () => gameState.resetGame(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue, // Set button to blue
+                          padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        ),
+                        child: Text('New Game', style: TextStyle(color: Colors.white)),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class CardWidget extends StatefulWidget {
+  final CardModel card;
+  final VoidCallback onTap;
+
+  CardWidget({required this.card, required this.onTap});
+
+  @override
+  _CardWidgetState createState() => _CardWidgetState();
+}
+
+class _CardWidgetState extends State<CardWidget> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
