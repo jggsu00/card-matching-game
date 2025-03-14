@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
-
+import 'dart:math';
 
 void main() {
   runApp(ChangeNotifierProvider(
@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: CardMatchingGame(),
-      theme: ThemeData.dark(), // Ensures the default theme is dark
+      theme: ThemeData.dark(),
     );
   }
 }
@@ -90,7 +90,7 @@ class CardMatchingGame extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black, // Set background to black
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text('Card Matching Game', style: TextStyle(color: Colors.blue)),
         backgroundColor: Colors.black,
@@ -126,14 +126,14 @@ class CardMatchingGame extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue, // Set "You Win!" text to blue
+                          color: Colors.blue,
                         ),
                       ),
                       SizedBox(height: 10),
                       ElevatedButton(
                         onPressed: () => gameState.resetGame(),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue, // Set button to blue
+                          backgroundColor: Colors.blue,
                           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                         ),
                         child: Text('New Game', style: TextStyle(color: Colors.white)),
@@ -162,3 +162,65 @@ class CardWidget extends StatefulWidget {
 class _CardWidgetState extends State<CardWidget> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 400),
+    );
+    _animation = Tween<double>(begin: 0, end: 1).animate(_controller);
+  }
+
+  @override
+  void didUpdateWidget(CardWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.card.isFlipped) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          final angle = _animation.value * pi;
+          return Transform(
+            alignment: Alignment.center,
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.002)
+              ..rotateY(angle),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: Colors.blue, width: 2),
+              ),
+              child: Center(
+                child: angle > pi / 2
+                    ? Transform(
+                  alignment: Alignment.center,
+                  transform: Matrix4.rotationY(pi),
+                  child: Text(widget.card.content, style: TextStyle(fontSize: 30)),
+                )
+                    : Text('🔷', style: TextStyle(fontSize: 30)),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+}
