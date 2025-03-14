@@ -36,3 +36,51 @@ class GameState extends ChangeNotifier {
   GameState() {
     _initializeGame();
   }
+
+  void _initializeGame() {
+    List<String> symbols = ['🍎', '🍌', '🍒', '🍇', '🍉', '🍓', '🥝', '🍍'];
+    List<CardModel> tempCards = [];
+    for (var symbol in symbols) {
+      tempCards.add(CardModel(id: UniqueKey().toString(), content: symbol));
+      tempCards.add(CardModel(id: UniqueKey().toString(), content: symbol));
+    }
+    tempCards.shuffle();
+    cards = tempCards;
+    notifyListeners();
+  }
+
+  void flipCard(CardModel card) {
+    if (isProcessing || card.isFlipped || card.isMatched) return;
+
+    card.isFlipped = true;
+    notifyListeners();
+
+    if (firstCard == null) {
+      firstCard = card;
+    } else {
+      isProcessing = true;
+      notifyListeners();
+
+      Future.delayed(Duration(seconds: 1), () {
+        if (firstCard!.content == card.content) {
+          firstCard!.isMatched = true;
+          card.isMatched = true;
+        } else {
+          firstCard!.isFlipped = false;
+          card.isFlipped = false;
+        }
+        firstCard = null;
+        isProcessing = false;
+        notifyListeners();
+      });
+    }
+  }
+
+  bool hasWon() {
+    return cards.every((card) => card.isMatched);
+  }
+
+  void resetGame() {
+    _initializeGame();
+  }
+}
